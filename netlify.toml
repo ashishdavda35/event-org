@@ -1,9 +1,10 @@
 [build]
-  command = "cd frontend && npm install && npm run build"
+  command = "cd frontend && npm ci && npm run build"
   publish = "frontend/.next"
 
 [build.environment]
   NODE_VERSION = "22"
+  NPM_FLAGS = "--production=false"
 
 [[redirects]]
   from = "/*"

@@ -17,6 +17,7 @@
 2. **Build Command:** `npm install`
 3. **Start Command:** `npm start`
 4. **Node Version:** 22
+5. **Railway Configuration:** Already set up with `railway.json`
 
 ### **Step 4: Set Environment Variables**
 Add these environment variables in Railway:

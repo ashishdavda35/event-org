@@ -1,0 +1,16 @@
+{
+  "name": "event-org",
+  "version": "1.0.0",
+  "description": "Event Org - Live Polling & Issues Management Platform",
+  "scripts": {
+    "start": "cd backend && npm start",
+    "build": "cd backend && npm install",
+    "dev": "cd backend && npm run dev"
+  },
+  "engines": {
+    "node": "22"
+  },
+  "keywords": ["polling", "events", "real-time", "nextjs", "nodejs"],
+  "author": "Event Org Team",
+  "license": "MIT"
+}

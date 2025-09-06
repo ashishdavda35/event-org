@@ -13,7 +13,7 @@ All frontend files are now properly tracked individually in Git.
    - Base directory: `frontend`
    - Build command: `npm run build`
    - Publish directory: `frontend/.next`
-   - Node version: `18`
+   - Node version: `22`
 5. Click **"Deploy site"**
 
 ## 🔍 **Test Your Deployment**

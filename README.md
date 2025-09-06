@@ -25,7 +25,7 @@ A modern, real-time polling and issues management platform built with Next.js, N
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js 18+
+- Node.js 22+ (LTS)
 - MongoDB
 - Git
 
@@ -83,7 +83,7 @@ npm run dev
    - Base directory: `frontend`
    - Build command: `npm run build`
    - Publish directory: `frontend/.next`
-   - Node version: `18`
+   - Node version: `22`
 
 ### Vercel (Backend)
 1. Go to [vercel.com](https://vercel.com)

@@ -9,7 +9,7 @@
    - Base directory: `frontend`
    - Build command: `npm run build`
    - Publish directory: `frontend/.next`
-   - Node version: `18`
+   - Node version: `22`
 
 ### Vercel (Backend)
 1. Go to [vercel.com](https://vercel.com)
@@ -32,7 +32,7 @@ cd frontend && npm install && npm run dev
 - [ ] Local build works (`npm run build`)
 - [ ] Base directory: `frontend`
 - [ ] Build command: `npm run build`
-- [ ] Node version: 18
+- [ ] Node version: 22
 - [ ] Environment variables configured
 
 ---

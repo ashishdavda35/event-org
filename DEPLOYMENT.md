@@ -5,11 +5,8 @@
 ### Netlify (Frontend)
 1. Go to [netlify.com](https://netlify.com)
 2. Connect GitHub repository: `ashishdavda35/event-org`
-3. **Build Settings:**
-   - Base directory: `frontend`
-   - Build command: `npm run build`
-   - Publish directory: `frontend/.next`
-   - Node version: `22`
+3. **Netlify will auto-detect the `netlify.toml` configuration**
+4. Deploy (no manual settings needed)
 
 ### Vercel (Backend)
 1. Go to [vercel.com](https://vercel.com)

@@ -13,9 +13,8 @@ All frontend files are now properly tracked individually in Git.
 5. Click **"Deploy site"**
 
 **The `netlify.toml` file is already configured with:**
-- Base directory: `frontend`
-- Build command: `npm run build`
-- Publish directory: `.next` (relative to base)
+- Build command: `cd frontend && npm run build`
+- Publish directory: `frontend/.next`
 - Node version: `22`
 
 ## 🔍 **Test Your Deployment**

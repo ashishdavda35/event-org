@@ -1,229 +1,194 @@
-# Event Org - Interactive Polling Platform
+# 🎯 Event Org - Live Polling & Issues Management Platform
 
-A full-stack web application similar to Mentimeter for creating and sharing interactive polls with real-time results visualization.
+A modern, real-time polling and issues management platform built with Next.js, Node.js, and MongoDB.
 
-## Features
+## ✨ Features
 
-### Core Features
-- **Multiple Question Types**:
-  - Multiple choice (single/multiple select)
-  - Rating scale (1-5 or custom)
-  - Open-ended text responses
-  - Word cloud collection
-  - Ranking/ordering questions
+### 🗳️ Live Polling System
+- **Interactive Polls** - Create multiple choice, text, and rating polls
+- **Real-time Results** - Live audience participation with instant updates
+- **Dashboard Control** - Hide/show results for audience management
+- **QR Code Sharing** - Easy poll sharing with QR codes
+- **Mobile Responsive** - Works perfectly on all devices
 
-- **Real-time Updates**: WebSocket-powered live results
-- **Unique Shareable Links**: Each poll gets a unique 6-character code
-- **Anonymous Participation**: Participants can join without registration
-- **Live Results Visualization**: Bar charts, pie charts, and word clouds
-- **Export Functionality**: Download results as CSV files
-- **Mobile Responsive**: Works perfectly on all devices
+### 📋 Issues Management
+- **Issue Tracking** - Create, assign, and track issues
+- **Status Management** - Open, in-progress, and closed states
+- **Priority Levels** - High, medium, low priority classification
+- **Real-time Updates** - Live issue status updates
 
-### Technical Features
-- **Authentication**: Email/password and Google OAuth
-- **Real-time Communication**: Socket.IO for live updates
-- **Database**: MongoDB for data persistence
-- **API**: RESTful API with comprehensive endpoints
-- **Scalability**: Supports 1000+ participants per poll
+### 🔐 User Authentication
+- **Secure Login/Register** - JWT-based authentication
+- **User Dashboard** - Personalized user experience
+- **Role-based Access** - Admin and user permissions
 
-## Tech Stack
-
-### Frontend
-- **Next.js 14** with TypeScript
-- **TailwindCSS** for styling
-- **Recharts** for data visualization
-- **React Hook Form** for form handling
-- **Socket.IO Client** for real-time updates
-- **Axios** for API calls
-
-### Backend
-- **Node.js** with Express.js
-- **Socket.IO** for real-time communication
-- **MongoDB** with Mongoose
-- **JWT** for authentication
-- **Passport.js** for OAuth
-- **Joi** for validation
-- **Bcrypt** for password hashing
-
-## Project Structure
-
-```
-event-org/
-├── backend/
-│   ├── src/
-│   │   ├── config/
-│   │   │   ├── database.js
-│   │   │   └── passport.js
-│   │   ├── middleware/
-│   │   │   ├── auth.js
-│   │   │   └── validation.js
-│   │   ├── models/
-│   │   │   ├── User.js
-│   │   │   └── Poll.js
-│   │   ├── routes/
-│   │   │   ├── auth.js
-│   │   │   └── polls.js
-│   │   └── index.js
-│   ├── Dockerfile
-│   ├── package.json
-│   └── railway.json
-├── frontend/
-│   ├── src/
-│   │   ├── app/
-│   │   │   ├── auth/
-│   │   │   ├── dashboard/
-│   │   │   ├── create-poll/
-│   │   │   └── poll/[code]/
-│   │   ├── contexts/
-│   │   │   ├── AuthContext.tsx
-│   │   │   ├── PollContext.tsx
-│   │   │   └── SocketContext.tsx
-│   │   ├── lib/
-│   │   │   └── api.ts
-│   │   └── types/
-│   │       └── index.ts
-│   ├── next.config.js
-│   ├── package.json
-│   └── vercel.json
-├── package.json
-└── README.md
-```
-
-## Getting Started
+## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js 18+ 
-- MongoDB (local or cloud)
-- npm or yarn
+- Node.js 18+
+- MongoDB
+- Git
 
 ### Installation
 
 1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd event-org
-   ```
+```bash
+git clone https://github.com/ashishdavda35/event-org.git
+cd event-org
+```
 
 2. **Install dependencies**
-   ```bash
-   npm run install:all
-   ```
+```bash
+# Backend
+cd backend
+npm install
+
+# Frontend
+cd ../frontend
+npm install
+```
 
 3. **Environment Setup**
-   
-   **Backend** (`backend/env.example` → `backend/.env`):
-   ```env
-   NODE_ENV=development
-   PORT=5000
-   MONGODB_URI=mongodb://localhost:27017/event-org
-   JWT_SECRET=your-super-secret-jwt-key-here
-   GOOGLE_CLIENT_ID=your-google-client-id
-   GOOGLE_CLIENT_SECRET=your-google-client-secret
-   FRONTEND_URL=http://localhost:3000
-   CORS_ORIGIN=http://localhost:3000
-   ```
+```bash
+# Backend
+cp backend/env.example backend/.env
+# Edit backend/.env with your MongoDB connection string
 
-   **Frontend** (create `frontend/.env.local`):
-   ```env
-   NEXT_PUBLIC_API_URL=http://localhost:5000/api
-   NEXT_PUBLIC_SOCKET_URL=http://localhost:5000
-   ```
+# Frontend
+cp frontend/.env.local.example frontend/.env.local
+# Edit frontend/.env.local with your API URL
+```
 
-4. **Start the development servers**
-   ```bash
-   npm run dev
-   ```
+4. **Start the application**
+```bash
+# Backend (Terminal 1)
+cd backend
+npm start
 
-   This will start both frontend (port 3000) and backend (port 5000) concurrently.
+# Frontend (Terminal 2)
+cd frontend
+npm run dev
+```
 
-### Individual Commands
+5. **Access the application**
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:5000
 
-- **Frontend only**: `npm run dev:frontend`
-- **Backend only**: `npm run dev:backend`
-- **Build frontend**: `npm run build`
-- **Start production**: `npm start`
+## 🌐 Deployment
 
-## API Endpoints
+### Netlify (Frontend)
+1. Go to [netlify.com](https://netlify.com)
+2. Connect your GitHub repository
+3. Set build settings:
+   - Base directory: `frontend`
+   - Build command: `npm run build`
+   - Publish directory: `frontend/.next`
+   - Node version: `18`
+
+### Vercel (Backend)
+1. Go to [vercel.com](https://vercel.com)
+2. Import your repository
+3. Set root directory to `backend`
+4. Deploy
+
+## 📁 Project Structure
+
+```
+event-org/
+├── backend/                 # Node.js/Express API
+│   ├── src/
+│   │   ├── config/         # Database and passport config
+│   │   ├── middleware/     # Authentication and validation
+│   │   ├── models/         # MongoDB models
+│   │   └── routes/         # API routes
+│   └── package.json
+├── frontend/               # Next.js React App
+│   ├── src/
+│   │   ├── app/           # Next.js app router pages
+│   │   ├── contexts/      # React contexts
+│   │   ├── lib/           # API utilities
+│   │   └── types/         # TypeScript types
+│   └── package.json
+└── README.md
+```
+
+## 🛠️ Technology Stack
+
+### Frontend
+- **Next.js 15** - React framework
+- **TypeScript** - Type safety
+- **Tailwind CSS** - Styling
+- **Framer Motion** - Animations
+- **Recharts** - Data visualization
+- **Lucide React** - Icons
+
+### Backend
+- **Node.js** - Runtime
+- **Express** - Web framework
+- **MongoDB** - Database
+- **Mongoose** - ODM
+- **JWT** - Authentication
+- **Socket.io** - Real-time communication
+- **Joi** - Validation
+
+## 📱 Usage
+
+### Creating Polls
+1. Login to your dashboard
+2. Click "Create New Poll"
+3. Configure poll settings
+4. Share poll link or QR code
+5. Monitor real-time results
+
+### Managing Issues
+1. Navigate to Issues page
+2. Create new issues
+3. Assign priorities and status
+4. Track progress in real-time
+
+### Live Dashboard
+1. Access poll results
+2. Toggle visibility for audience
+3. Export results
+4. Manage poll settings
+
+## 🔧 API Endpoints
 
 ### Authentication
 - `POST /api/auth/register` - User registration
 - `POST /api/auth/login` - User login
-- `GET /api/auth/google` - Google OAuth
-- `GET /api/auth/me` - Get current user
 
 ### Polls
-- `POST /api/polls` - Create poll
-- `GET /api/polls/my-polls` - Get user's polls
-- `GET /api/polls/code/:code` - Get poll by code
-- `POST /api/polls/join/:code` - Join poll
-- `POST /api/polls/:code/respond` - Submit response
+- `GET /api/polls` - Get user polls
+- `POST /api/polls` - Create new poll
+- `GET /api/polls/:code` - Get poll by code
+- `POST /api/polls/:code/responses` - Submit response
 - `GET /api/polls/:code/results` - Get poll results
-- `PATCH /api/polls/:code/settings` - Update poll settings
-- `GET /api/polls/:code/export` - Export results as CSV
 
-## Deployment
+### Issues
+- `GET /api/issues` - Get all issues
+- `POST /api/issues` - Create new issue
+- `PUT /api/issues/:id` - Update issue
+- `DELETE /api/issues/:id` - Delete issue
 
-### Backend (Railway/Heroku)
-
-1. **Railway**:
-   - Connect your GitHub repository
-   - Set environment variables
-   - Deploy automatically
-
-2. **Heroku**:
-   ```bash
-   # Install Heroku CLI
-   heroku create your-app-name
-   heroku addons:create mongolab:sandbox
-   heroku config:set NODE_ENV=production
-   heroku config:set JWT_SECRET=your-secret
-   git push heroku main
-   ```
-
-### Frontend (Vercel)
-
-1. Connect your GitHub repository to Vercel
-2. Set environment variables:
-   - `NEXT_PUBLIC_API_URL`: Your backend URL
-   - `NEXT_PUBLIC_SOCKET_URL`: Your backend WebSocket URL
-3. Deploy automatically
-
-## Usage
-
-### Creating a Poll
-1. Register/Login to your account
-2. Click "Create New Poll"
-3. Add poll title and description
-4. Add questions with different types
-5. Configure poll settings
-6. Publish and share the poll code
-
-### Participating in a Poll
-1. Enter the poll code on the homepage
-2. Provide your name (email optional)
-3. Answer the questions
-4. Submit your response
-5. View real-time results (if enabled)
-
-### Managing Polls
-- View all your polls in the dashboard
-- Toggle poll visibility
-- Export results as CSV
-- Share poll links
-- View live analytics
-
-## Contributing
+## 🤝 Contributing
 
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
-4. Add tests if applicable
+4. Test thoroughly
 5. Submit a pull request
 
-## License
+## 📄 License
 
-MIT License - see LICENSE file for details
+This project is licensed under the MIT License.
 
-## Support
+## 🆘 Support
 
-For support, email support@eventorg.com or create an issue on GitHub.
+For support and questions:
+- Create an issue on GitHub
+- Check the deployment guides in the repository
+
+---
+
+**🎉 Built with ❤️ for modern event management and live polling experiences!**

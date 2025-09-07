@@ -16,7 +16,7 @@ jobs:
       uses: actions/checkout@v4
       
     - name: Deploy to Railway
-      if: ${{ secrets.RAILWAY_TOKEN }}
+      if: ${{ secrets.RAILWAY_TOKEN != '' }}
       uses: railwayapp/railway-deploy@v1.0.0
       with:
         railway-token: ${{ secrets.RAILWAY_TOKEN }}
@@ -62,7 +62,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Deploy Frontend to Vercel
     needs: deploy-backend
-    if: ${{ secrets.VERCEL_TOKEN }}
+    if: ${{ secrets.VERCEL_TOKEN != '' }}
     
     steps:
     - name: Checkout code
@@ -81,7 +81,7 @@ jobs:
   setup-database:
     runs-on: ubuntu-latest
     name: Setup Database
-    if: ${{ secrets.MONGODB_URI }}
+    if: ${{ secrets.MONGODB_URI != '' }}
     
     steps:
     - name: Checkout code

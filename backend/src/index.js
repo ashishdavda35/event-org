@@ -7,6 +7,7 @@ const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
 const connectDB = require('./config/database');
+const passport = require('./config/passport');
 const authRoutes = require('./routes/auth');
 const pollRoutes = require('./routes/polls');
 
@@ -37,6 +38,9 @@ const limiter = rateLimit({
   max: 500 // limit each IP to 500 requests per second
 });
 app.use('/api/', limiter);
+
+// Initialize passport
+app.use(passport.initialize());
 
 // Routes
 app.use('/api/auth', authRoutes);

@@ -46,13 +46,31 @@ app.use(passport.initialize());
 app.use('/api/auth', authRoutes);
 app.use('/api/polls', pollRoutes);
 
-// Health check
+// Health check - simple and robust
 app.get('/api/health', (req, res) => {
+  try {
+    res.status(200).json({ 
+      status: 'OK', 
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      environment: process.env.NODE_ENV || 'development',
+      port: process.env.PORT || 5000
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      status: 'ERROR', 
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+// Simple root endpoint for basic health check
+app.get('/', (req, res) => {
   res.status(200).json({ 
-    status: 'OK', 
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    environment: process.env.NODE_ENV || 'development'
+    message: 'Event Org Backend API',
+    status: 'OK',
+    timestamp: new Date().toISOString()
   });
 });
 

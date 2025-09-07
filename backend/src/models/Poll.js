@@ -73,10 +73,6 @@ const pollSchema = new mongoose.Schema({
       type: Boolean,
       default: false
     },
-    isActive: {
-      type: Boolean,
-      default: true
-    },
     endDate: {
       type: Date
     }
@@ -114,6 +110,30 @@ const pollSchema = new mongoose.Schema({
       type: Number,
       default: 0
     }
+  },
+  isActive: {
+    type: Boolean,
+    default: true
+  },
+  manuallyDeactivated: {
+    type: Boolean,
+    default: false
+  },
+  viewMode: {
+    type: String,
+    enum: ['single', 'step'],
+    default: 'single'
+  },
+  currentQuestionIndex: {
+    type: Number,
+    default: 0
+  },
+  adminJoined: {
+    type: Boolean,
+    default: false
+  },
+  adminSessionId: {
+    type: String
   }
 }, {
   timestamps: true

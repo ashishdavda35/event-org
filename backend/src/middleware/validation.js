@@ -6,10 +6,12 @@ const validatePoll = (req, res, next) => {
     description: Joi.string().max(500).allow('').optional(),
     questions: Joi.array().items(
       Joi.object({
+        _id: Joi.string().optional(), // Allow _id for existing questions
         type: Joi.string().valid('multiple-choice', 'rating', 'open-ended', 'word-cloud', 'ranking').required(),
         question: Joi.string().min(1).max(500).required(),
         options: Joi.array().items(
           Joi.object({
+            _id: Joi.string().optional(), // Allow _id for existing options
             text: Joi.string().min(1).required(),
             value: Joi.string().min(1).required()
           })
@@ -21,10 +23,10 @@ const validatePoll = (req, res, next) => {
         required: Joi.boolean().default(true),
         settings: Joi.object({
           allowMultiple: Joi.boolean().default(false),
-          minRating: Joi.number().min(1).max(10).default(1),
-          maxRating: Joi.number().min(1).max(10).default(5),
-          maxWords: Joi.number().min(1).max(10).default(3)
-        }).optional()
+          minRating: Joi.number().min(1).max(10).default(1).optional(),
+          maxRating: Joi.number().min(1).max(10).default(5).optional(),
+          maxWords: Joi.number().min(1).max(10).default(3).optional()
+        }).optional().default({})
       })
     ).min(1).required(),
     settings: Joi.object({
@@ -32,7 +34,7 @@ const validatePoll = (req, res, next) => {
       showResults: Joi.boolean().default(true),
       allowMultipleSubmissions: Joi.boolean().default(false),
       isActive: Joi.boolean().default(true),
-      endDate: Joi.date().greater('now').allow('').optional()
+      endDate: Joi.date().allow('').optional()
     }).optional()
   });
 

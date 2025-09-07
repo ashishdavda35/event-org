@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import api from '@/lib/api';
+import api, { pollApi } from '@/lib/api';
 import { Poll } from '@/types';
 import QRCode from 'qrcode';
 import { 
@@ -19,12 +19,19 @@ import {
   CheckIcon,
   XMarkIcon,
   LinkIcon,
-  QrCodeIcon
+  QrCodeIcon,
+  PencilIcon,
+  EllipsisVerticalIcon,
+  DocumentDuplicateIcon,
+  ArrowPathIcon,
+  ViewColumnsIcon,
+  ListBulletIcon
 } from '@heroicons/react/24/outline';
 
 export default function DashboardPage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [polls, setPolls] = useState<Poll[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteConfirm, setDeleteConfirm] = useState<{ poll: Poll | null; show: boolean }>({
@@ -39,6 +46,13 @@ export default function DashboardPage() {
   const [copySuccess, setCopySuccess] = useState(false);
   const [shareUrl, setShareUrl] = useState('');
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState('');
+  const [toggling, setToggling] = useState<string | null>(null);
+  const [togglingViewMode, setTogglingViewMode] = useState<string | null>(null);
+  const [ellipsesMenu, setEllipsesMenu] = useState<{ poll: Poll | null; show: boolean }>({
+    poll: null,
+    show: false
+  });
+  const [cloning, setCloning] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -51,9 +65,37 @@ export default function DashboardPage() {
     }
   }, [user, authLoading, router]);
 
-  const fetchPolls = async () => {
+  // Handle query parameters (e.g., when redirected from edit page)
+  useEffect(() => {
+    if (searchParams.get('updated') === 'true' && user && !authLoading) {
+      // Remove the query parameter from URL
+      router.replace('/dashboard');
+      // Refresh polls data
+      fetchPolls();
+    }
+  }, [searchParams, user, authLoading, router]);
+
+  // Refresh polls when page becomes visible (e.g., when navigating back from edit page)
+  useEffect(() => {
+    const handleFocus = () => {
+      if (user && !authLoading) {
+        fetchPolls();
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [user, authLoading]);
+
+  const fetchPolls = async (showLoading = false) => {
+    console.log('fetchPolls called with showLoading:', showLoading);
+    if (showLoading) {
+      setLoading(true);
+    }
     try {
+      console.log('Fetching polls from API...');
       const response = await api.get('/polls/my-polls');
+      console.log('Polls fetched successfully:', response.data.polls.length, 'polls');
       setPolls(response.data.polls);
     } catch (error) {
       console.error('Failed to fetch polls:', error);
@@ -63,6 +105,11 @@ export default function DashboardPage() {
   };
 
   const openShareModal = async (poll: Poll) => {
+    // Don't open share modal for expired polls
+    if (!poll.isActive && poll.settings?.endDate && new Date(poll.settings.endDate) < new Date()) {
+      return;
+    }
+    
     const link = `${window.location.origin}/poll/${poll.code}`;
     setShareUrl(link);
     setShareModal({ poll, show: true });
@@ -153,6 +200,82 @@ export default function DashboardPage() {
     setDeleteConfirm({ poll: null, show: false });
   };
 
+  const handleToggleStatus = async (poll: Poll) => {
+    console.log('Toggle clicked for poll:', poll.code, 'Current status:', poll.isActive);
+    setToggling(poll._id);
+    try {
+      console.log('Calling toggle API for poll:', poll.code);
+      const response = await pollApi.toggleStatus(poll.code);
+      console.log('Toggle API response:', response.data);
+      
+      // Update the poll in the local state
+      setPolls(polls.map(p => 
+        p._id === poll._id 
+          ? { ...p, isActive: response.data.poll.isActive, manuallyDeactivated: response.data.poll.manuallyDeactivated }
+          : p
+      ));
+      console.log('Poll status updated in state');
+    } catch (error: any) {
+      console.error('Failed to toggle poll status:', error);
+      console.error('Error response:', error.response?.data);
+      if (error.response?.data?.isExpiredByTime) {
+        alert('Cannot activate poll that has expired by end date');
+      } else {
+        alert(error.response?.data?.message || 'Failed to toggle poll status');
+      }
+    } finally {
+      setToggling(null);
+    }
+  };
+
+  const handleToggleViewMode = async (poll: Poll) => {
+    console.log('Toggle view mode clicked for poll:', poll.code, 'Current viewMode:', poll.viewMode);
+    setTogglingViewMode(poll._id);
+    try {
+      console.log('Calling toggle view mode API for poll:', poll.code);
+      const response = await pollApi.toggleViewMode(poll.code);
+      console.log('Toggle view mode API response:', response.data);
+      
+      // Update the poll in the local state
+      setPolls(polls.map(p => 
+        p._id === poll._id 
+          ? { ...p, viewMode: response.data.poll.viewMode }
+          : p
+      ));
+      console.log('Poll view mode updated in state');
+    } catch (error: any) {
+      console.error('Failed to toggle poll view mode:', error);
+      console.error('Error response:', error.response?.data);
+      alert(error.response?.data?.message || 'Failed to toggle poll view mode');
+    } finally {
+      setTogglingViewMode(null);
+    }
+  };
+
+  const handleClonePoll = async (poll: Poll) => {
+    setCloning(poll._id);
+    try {
+      const response = await pollApi.clone(poll.code);
+      // Add the new poll to the beginning of the list
+      setPolls([response.data.poll, ...polls]);
+      setEllipsesMenu({ poll: null, show: false });
+      alert('Poll cloned successfully!');
+    } catch (error: any) {
+      console.error('Failed to clone poll:', error);
+      alert(error.response?.data?.message || 'Failed to clone poll');
+    } finally {
+      setCloning(null);
+    }
+  };
+
+  const openEllipsesMenu = (poll: Poll) => {
+    setEllipsesMenu({ poll, show: true });
+  };
+
+  const closeEllipsesMenu = () => {
+    setEllipsesMenu({ poll: null, show: false });
+  };
+
   if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -202,17 +325,32 @@ export default function DashboardPage() {
             <h1 className="text-3xl font-bold text-gray-900">My Polls</h1>
             <p className="text-gray-600 mt-2">Create and manage your interactive polls</p>
           </div>
-          <Link
-            href="/create-poll"
-            className="inline-flex items-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition-colors"
-          >
-            <PlusIcon className="w-5 h-5" />
-            Create New Poll
-          </Link>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Refresh button clicked');
+                fetchPolls(true);
+              }}
+              disabled={loading}
+              className="inline-flex items-center gap-2 bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <ArrowPathIcon className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+              Refresh
+            </button>
+            <Link
+              href="/create-poll"
+              className="inline-flex items-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition-colors"
+            >
+              <PlusIcon className="w-5 h-5" />
+              Create New Poll
+            </Link>
+          </div>
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <div className="flex items-center">
               <ChartBarIcon className="w-8 h-8 text-indigo-600" />
@@ -239,7 +377,29 @@ export default function DashboardPage() {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Active Polls</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {polls.filter(poll => poll.settings.isActive).length}
+                  {polls.filter(poll => poll.isActive).length}
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-white p-6 rounded-lg shadow-sm">
+            <div className="flex items-center">
+              <ExclamationTriangleIcon className="w-8 h-8 text-red-600" />
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Expired Polls</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {polls.filter(poll => poll.settings.endDate && new Date(poll.settings.endDate) < new Date() && !poll.isActive).length}
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-white p-6 rounded-lg shadow-sm">
+            <div className="flex items-center">
+              <XMarkIcon className="w-8 h-8 text-orange-600" />
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Inactive Polls</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {polls.filter(poll => !poll.isActive && (!poll.settings.endDate || new Date(poll.settings.endDate) >= new Date())).length}
                 </p>
               </div>
             </div>
@@ -277,16 +437,47 @@ export default function DashboardPage() {
               <div key={poll._id} className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow">
                 <div className="p-6">
                   <div className="flex justify-between items-start mb-4">
-                    <h3 className="text-lg font-semibold text-gray-900 line-clamp-2">
+                    <h3 className="text-lg font-semibold text-gray-900 line-clamp-2 flex-1 mr-2">
                       {poll.title}
                     </h3>
-                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                      poll.settings.isActive 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-gray-100 text-gray-800'
-                    }`}>
-                      {poll.settings.isActive ? 'Active' : 'Inactive'}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          console.log('Button clicked for poll:', poll.code);
+                          handleToggleStatus(poll);
+                        }}
+                        disabled={toggling === poll._id}
+                        className={`px-2 py-1 text-xs font-medium rounded-full transition-colors ${
+                          poll.isActive 
+                            ? (poll.settings.endDate && new Date(poll.settings.endDate) < new Date())
+                              ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200' // Active but time-expired
+                              : 'bg-green-100 text-green-800 hover:bg-green-200' // Active and not expired
+                            : (poll.settings.endDate && new Date(poll.settings.endDate) < new Date())
+                            ? 'bg-red-100 text-red-800 hover:bg-red-200' // Inactive and time-expired
+                            : 'bg-orange-100 text-orange-800 hover:bg-orange-200' // Inactive but not expired
+                        } disabled:opacity-50 disabled:cursor-not-allowed`}
+                      >
+                        {toggling === poll._id ? (
+                          <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-current"></div>
+                        ) : (
+                          poll.isActive 
+                            ? (poll.settings.endDate && new Date(poll.settings.endDate) < new Date())
+                              ? 'Active*' // Active but time-expired
+                              : 'Active' // Active and not expired
+                            : (poll.settings.endDate && new Date(poll.settings.endDate) < new Date())
+                            ? 'Expired' // Inactive and time-expired
+                            : 'Inactive' // Inactive but not expired
+                        )}
+                      </button>
+                      <button
+                        onClick={() => openEllipsesMenu(poll)}
+                        className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                      >
+                        <EllipsisVerticalIcon className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                   
                   {poll.description && (
@@ -309,34 +500,28 @@ export default function DashboardPage() {
                     Created {formatDate(poll.createdAt)}
                   </div>
 
-                  <div className="flex space-x-2">
+                  <div className="grid grid-cols-3 gap-2">
                     <Link
                       href={`/poll/${poll.code}/results`}
-                      className="flex-1 inline-flex items-center justify-center gap-1 px-3 py-2 text-sm font-medium text-indigo-600 bg-indigo-50 rounded-md hover:bg-indigo-100 transition-colors"
+                      className="inline-flex items-center justify-center gap-1 px-3 py-2 text-sm font-medium text-indigo-600 bg-indigo-50 rounded-md hover:bg-indigo-100 transition-colors"
                     >
                       <EyeIcon className="w-4 h-4" />
-                      View Results
+                      Results
                     </Link>
-                    <button
-                      onClick={() => openShareModal(poll)}
-                      className="flex-1 inline-flex items-center justify-center gap-1 px-3 py-2 text-sm font-medium text-gray-600 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors"
+                    <Link
+                      href={`/edit-poll/${poll.code}`}
+                      className="inline-flex items-center justify-center gap-1 px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 transition-colors"
                     >
-                      <ShareIcon className="w-4 h-4" />
-                      Share Link
-                    </button>
+                      <PencilIcon className="w-4 h-4" />
+                      Edit
+                    </Link>
                     <Link
                       href={`/poll/${poll.code}`}
-                      className="flex-1 inline-flex items-center justify-center gap-1 px-3 py-2 text-sm font-medium text-green-600 bg-green-50 rounded-md hover:bg-green-100 transition-colors"
+                      className="inline-flex items-center justify-center gap-1 px-3 py-2 text-sm font-medium text-green-600 bg-green-50 rounded-md hover:bg-green-100 transition-colors"
                     >
                       <UsersIcon className="w-4 h-4" />
-                      Join Poll
+                      Join
                     </Link>
-                    <button
-                      onClick={() => handleDeletePoll(poll)}
-                      className="inline-flex items-center justify-center gap-1 px-3 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-md hover:bg-red-100 transition-colors"
-                    >
-                      <TrashIcon className="w-4 h-4" />
-                    </button>
                   </div>
                 </div>
               </div>
@@ -457,6 +642,103 @@ export default function DashboardPage() {
 
               <div className="text-xs text-gray-500">
                 <p>Participants can join using the poll code: <span className="font-mono font-medium">{shareModal.poll.code}</span></p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Ellipses Menu Modal */}
+      {ellipsesMenu.show && ellipsesMenu.poll && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-80 shadow-lg rounded-md bg-white">
+            <div className="mt-3">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-medium text-gray-900">Poll Actions</h3>
+                <button
+                  onClick={closeEllipsesMenu}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <XMarkIcon className="w-6 h-6" />
+                </button>
+              </div>
+              
+              <div className="mb-4">
+                <p className="text-sm text-gray-600 mb-4">Poll: <span className="font-medium">{ellipsesMenu.poll.title}</span></p>
+                
+                <div className="space-y-2">
+                  <button
+                    onClick={() => handleClonePoll(ellipsesMenu.poll!)}
+                    disabled={cloning === ellipsesMenu.poll._id}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-left text-gray-700 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {cloning === ellipsesMenu.poll._id ? (
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-600"></div>
+                    ) : (
+                      <DocumentDuplicateIcon className="w-5 h-5" />
+                    )}
+                    <span className="font-medium">
+                      {cloning === ellipsesMenu.poll._id ? 'Cloning...' : 'Clone Poll'}
+                    </span>
+                  </button>
+                  
+                  <button
+                    onClick={() => {
+                      handleToggleViewMode(ellipsesMenu.poll!);
+                      closeEllipsesMenu();
+                    }}
+                    disabled={togglingViewMode === ellipsesMenu.poll._id}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-left text-gray-700 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {togglingViewMode === ellipsesMenu.poll._id ? (
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-600"></div>
+                    ) : ellipsesMenu.poll.viewMode === 'single' ? (
+                      <ListBulletIcon className="w-5 h-5" />
+                    ) : (
+                      <ViewColumnsIcon className="w-5 h-5" />
+                    )}
+                    <span className="font-medium">
+                      {togglingViewMode === ellipsesMenu.poll._id 
+                        ? 'Updating...' 
+                        : ellipsesMenu.poll.viewMode === 'single'
+                        ? 'Switch to Step by Step'
+                        : 'Switch to All Questions'
+                      }
+                    </span>
+                  </button>
+                  
+                  <button
+                    onClick={() => {
+                      openShareModal(ellipsesMenu.poll!);
+                      closeEllipsesMenu();
+                    }}
+                    disabled={!ellipsesMenu.poll?.isActive && ellipsesMenu.poll?.settings?.endDate && new Date(ellipsesMenu.poll.settings.endDate) < new Date()}
+                    className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors ${
+                      !ellipsesMenu.poll?.isActive && ellipsesMenu.poll?.settings?.endDate && new Date(ellipsesMenu.poll.settings.endDate) < new Date()
+                        ? 'text-gray-400 bg-gray-100 cursor-not-allowed'
+                        : 'text-gray-700 bg-gray-50 hover:bg-gray-100'
+                    }`}
+                  >
+                    <ShareIcon className="w-5 h-5" />
+                    <span className="font-medium">
+                      {!ellipsesMenu.poll?.isActive && ellipsesMenu.poll?.settings?.endDate && new Date(ellipsesMenu.poll.settings.endDate) < new Date()
+                        ? 'Share Poll (Expired)'
+                        : 'Share Poll'
+                      }
+                    </span>
+                  </button>
+                  
+                  <button
+                    onClick={() => {
+                      handleDeletePoll(ellipsesMenu.poll!);
+                      closeEllipsesMenu();
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-left text-red-700 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
+                  >
+                    <TrashIcon className="w-5 h-5" />
+                    <span className="font-medium">Delete Poll</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>

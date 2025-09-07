@@ -40,6 +40,12 @@ export interface Poll {
   creator: User;
   questions: Question[];
   settings: PollSettings;
+  isActive: boolean;
+  manuallyDeactivated?: boolean;
+  viewMode: 'single' | 'step';
+  currentQuestionIndex: number;
+  adminJoined: boolean;
+  adminSessionId?: string;
   participants: Array<{
     _id: string;
     name: string;

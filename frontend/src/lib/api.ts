@@ -35,4 +35,24 @@ api.interceptors.response.use(
   }
 );
 
+// Poll API functions
+export const pollApi = {
+  // Toggle poll active status
+  toggleStatus: (code: string) => api.patch(`/polls/${code}/toggle-status`),
+  // Clone poll
+  clone: (code: string) => api.post(`/polls/${code}/clone`),
+  // Toggle poll view mode
+  toggleViewMode: (code: string) => api.patch(`/polls/${code}/toggle-view-mode`),
+  // Admin join poll for synchronized control
+  adminJoin: (code: string) => api.post(`/polls/${code}/admin-join`),
+  // Admin leave poll
+  adminLeave: (code: string) => api.post(`/polls/${code}/admin-leave`),
+  // Admin navigate to next question
+  adminNextQuestion: (code: string) => api.post(`/polls/${code}/admin-next-question`),
+  // Admin navigate to previous question
+  adminPreviousQuestion: (code: string) => api.post(`/polls/${code}/admin-previous-question`),
+  // Admin jump to specific question
+  adminJumpQuestion: (code: string, questionIndex: number) => api.post(`/polls/${code}/admin-jump-question`, { questionIndex }),
+};
+
 export default api;

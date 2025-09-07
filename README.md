@@ -19,6 +19,21 @@ A full-stack application for creating and managing live polls with real-time upd
 - **Database**: MongoDB Atlas
 - **Real-time**: Socket.io for live updates
 
+## 🚀 **Deployment with GitHub Actions**
+
+This project supports automated deployment using GitHub Actions:
+
+- **Frontend**: GitHub Pages or Vercel
+- **Backend**: Render or Railway  
+- **Database**: MongoDB Atlas
+
+### **Quick Deploy:**
+1. Add secrets to GitHub repository
+2. Push to main branch
+3. Watch automatic deployment!
+
+For detailed setup, see [GITHUB_ACTIONS_SETUP.md](./GITHUB_ACTIONS_SETUP.md).
+
 ## 🚀 **Local Development**
 
 ### **Prerequisites**

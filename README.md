@@ -17,17 +17,15 @@ A full-stack application for creating and managing live polls with real-time upd
 - **Frontend**: Next.js 15 with React 19
 - **Backend**: Node.js with Express.js
 - **Database**: MongoDB Atlas
-- **Deployment**: GitHub Actions (Render + Vercel)
 - **Real-time**: Socket.io for live updates
 
-## 🚀 **Quick Start**
+## 🚀 **Local Development**
 
 ### **Prerequisites**
 - Node.js 22+
 - MongoDB Atlas account
-- GitHub account
 
-### **Local Development**
+### **Setup**
 
 1. **Clone the repository**
    ```bash
@@ -74,40 +72,10 @@ A full-stack application for creating and managing live polls with real-time upd
    - Frontend: http://localhost:3000
    - Backend API: http://localhost:5000
 
-## 🚀 **Deployment**
-
-This project uses **GitHub Actions** for automated deployment:
-
-- **Backend**: Deployed to Render
-- **Frontend**: Deployed to Vercel
-- **Database**: MongoDB Atlas
-
-### **Setup GitHub Actions**
-
-1. **Add secrets to GitHub repository**:
-   - `RENDER_API_KEY`: Your Render API key
-   - `RENDER_SERVICE_ID`: Your Render service ID
-   - `VERCEL_TOKEN`: Your Vercel token
-   - `VERCEL_ORG_ID`: Your Vercel organization ID
-   - `VERCEL_PROJECT_ID`: Your Vercel project ID
-
-2. **Push to main branch**:
-   ```bash
-   git push origin main
-   ```
-
-3. **Watch the magic happen**:
-   - Backend deploys to Render
-   - Frontend deploys to Vercel
-   - Everything is automated!
-
-For detailed deployment instructions, see [GITHUB_ACTIONS_DEPLOYMENT.md](./GITHUB_ACTIONS_DEPLOYMENT.md).
-
 ## 📁 **Project Structure**
 
 ```
 event-org/
-├── .github/workflows/          # GitHub Actions workflows
 ├── backend/                    # Node.js/Express backend
 │   ├── src/
 │   │   ├── config/            # Database and passport config
@@ -171,13 +139,7 @@ This project is licensed under the MIT License.
 
 If you encounter any issues:
 1. Check the [GitHub Issues](https://github.com/your-username/event-org/issues)
-2. Review the deployment guide
-3. Check the GitHub Actions logs
-
-## 🎯 **Live Demo**
-
-- **Frontend**: [Your Vercel URL]
-- **Backend API**: [Your Render URL]
+2. Review the setup instructions above
 
 ---
 

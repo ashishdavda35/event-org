@@ -70,7 +70,18 @@ app.get('/', (req, res) => {
   res.status(200).json({ 
     message: 'Event Org Backend API',
     status: 'OK',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    port: process.env.PORT || 5000
+  });
+});
+
+// Additional health check endpoint for Railway
+app.get('/health', (req, res) => {
+  res.status(200).json({ 
+    status: 'OK',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
   });
 });
 
@@ -131,6 +142,12 @@ server.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
+  console.log(`✅ Server is ready and listening for requests`);
+  
+  // Additional startup confirmation
+  setTimeout(() => {
+    console.log(`🎯 Server fully initialized and ready for health checks`);
+  }, 2000); // Wait 2 seconds before confirming readiness
 });
 
 // Handle server errors

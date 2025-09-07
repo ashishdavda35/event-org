@@ -76,14 +76,6 @@ app.get('/', (req, res) => {
   });
 });
 
-// Additional health check endpoint for Railway
-app.get('/health', (req, res) => {
-  res.status(200).json({ 
-    status: 'OK',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime()
-  });
-});
 
 // Socket.IO connection handling
 io.on('connection', (socket) => {
@@ -145,11 +137,6 @@ server.listen(PORT, '0.0.0.0', () => {
   console.log(`✅ Server is ready and listening for requests`);
   console.log(`🔗 MongoDB URI: ${process.env.MONGODB_URI ? 'Set' : 'Not set'}`);
   console.log(`🔑 JWT Secret: ${process.env.JWT_SECRET ? 'Set' : 'Not set'}`);
-  
-  // Additional startup confirmation
-  setTimeout(() => {
-    console.log(`🎯 Server fully initialized and ready for health checks`);
-  }, 2000); // Wait 2 seconds before confirming readiness
 });
 
 // Handle server errors

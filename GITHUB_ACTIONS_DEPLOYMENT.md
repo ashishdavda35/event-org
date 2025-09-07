@@ -1,12 +1,18 @@
-# 🚀 GitHub Actions Deployment Guide
+# 🚀 Event Org - GitHub Actions Deployment
 
-## 🎯 **Why GitHub Actions?**
+## 🎯 **Automated Deployment with GitHub Actions**
 
-- ✅ **More reliable** than individual platform deployments
+This project uses GitHub Actions for automated deployment of:
+- **Frontend**: Next.js application
+- **Backend**: Node.js/Express API
+- **Database**: MongoDB Atlas
+
+### **✅ Benefits:**
+- ✅ **Automatic deployments** on every push to main
+- ✅ **More reliable** than manual deployments
 - ✅ **Full control** over the deployment process
 - ✅ **Free** (2000 minutes/month for private repos)
 - ✅ **Integrated** with your GitHub repository
-- ✅ **Can deploy to multiple platforms** from one workflow
 - ✅ **Better error handling** and rollback capabilities
 
 ## 📋 **Deployment Options:**

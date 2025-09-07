@@ -86,23 +86,34 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// Google OAuth
-router.get('/google', passport.authenticate('google', {
-  scope: ['profile', 'email']
-}));
+// Google OAuth (only if configured)
+if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+  router.get('/google', passport.authenticate('google', {
+    scope: ['profile', 'email']
+  }));
 
-router.get('/google/callback', 
-  passport.authenticate('google', { session: false }),
-  (req, res) => {
-    const token = jwt.sign(
-      { id: req.user._id },
-      process.env.JWT_SECRET,
-      { expiresIn: '7d' }
-    );
+  router.get('/google/callback', 
+    passport.authenticate('google', { session: false }),
+    (req, res) => {
+      const token = jwt.sign(
+        { id: req.user._id },
+        process.env.JWT_SECRET,
+        { expiresIn: '7d' }
+      );
 
-    res.redirect(`${process.env.FRONTEND_URL}/auth/callback?token=${token}`);
-  }
-);
+      res.redirect(`${process.env.FRONTEND_URL}/auth/callback?token=${token}`);
+    }
+  );
+} else {
+  // Placeholder routes when Google OAuth is not configured
+  router.get('/google', (req, res) => {
+    res.status(501).json({ message: 'Google OAuth not configured' });
+  });
+
+  router.get('/google/callback', (req, res) => {
+    res.status(501).json({ message: 'Google OAuth not configured' });
+  });
+}
 
 // Get current user
 router.get('/me', auth, async (req, res) => {

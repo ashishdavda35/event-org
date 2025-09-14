@@ -48,9 +48,10 @@ export default function DashboardPage() {
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState('');
   const [toggling, setToggling] = useState<string | null>(null);
   const [togglingViewMode, setTogglingViewMode] = useState<string | null>(null);
-  const [ellipsesMenu, setEllipsesMenu] = useState<{ poll: Poll | null; show: boolean }>({
+  const [ellipsesMenu, setEllipsesMenu] = useState<{ poll: Poll | null; show: boolean; position: { x: number; y: number } | null }>({
     poll: null,
-    show: false
+    show: false,
+    position: null
   });
   const [cloning, setCloning] = useState<string | null>(null);
 
@@ -86,6 +87,23 @@ export default function DashboardPage() {
     window.addEventListener('focus', handleFocus);
     return () => window.removeEventListener('focus', handleFocus);
   }, [user, authLoading]);
+
+  // Handle click outside to close ellipses menu
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (ellipsesMenu.show) {
+        const target = event.target as Element;
+        if (!target.closest('.ellipses-menu') && !target.closest('[data-ellipses-button]')) {
+          closeEllipsesMenu();
+        }
+      }
+    };
+
+    if (ellipsesMenu.show) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [ellipsesMenu.show]);
 
   const fetchPolls = async (showLoading = false) => {
     console.log('fetchPolls called with showLoading:', showLoading);
@@ -268,12 +286,20 @@ export default function DashboardPage() {
     }
   };
 
-  const openEllipsesMenu = (poll: Poll) => {
-    setEllipsesMenu({ poll, show: true });
+  const openEllipsesMenu = (poll: Poll, event: React.MouseEvent) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    setEllipsesMenu({ 
+      poll, 
+      show: true, 
+      position: { 
+        x: rect.right - 200, // Position to the left of the button
+        y: rect.bottom + 5   // Position below the button
+      } 
+    });
   };
 
   const closeEllipsesMenu = () => {
-    setEllipsesMenu({ poll: null, show: false });
+    setEllipsesMenu({ poll: null, show: false, position: null });
   };
 
   if (authLoading || loading) {
@@ -472,7 +498,8 @@ export default function DashboardPage() {
                         )}
                       </button>
                       <button
-                        onClick={() => openEllipsesMenu(poll)}
+                        onClick={(e) => openEllipsesMenu(poll, e)}
+                        data-ellipses-button
                         className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
                       >
                         <EllipsisVerticalIcon className="w-4 h-4" />
@@ -648,99 +675,91 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Ellipses Menu Modal */}
-      {ellipsesMenu.show && ellipsesMenu.poll && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-80 shadow-lg rounded-md bg-white">
-            <div className="mt-3">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-medium text-gray-900">Poll Actions</h3>
-                <button
-                  onClick={closeEllipsesMenu}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <XMarkIcon className="w-6 h-6" />
-                </button>
-              </div>
-              
-              <div className="mb-4">
-                <p className="text-sm text-gray-600 mb-4">Poll: <span className="font-medium">{ellipsesMenu.poll.title}</span></p>
-                
-                <div className="space-y-2">
-                  <button
-                    onClick={() => handleClonePoll(ellipsesMenu.poll!)}
-                    disabled={cloning === ellipsesMenu.poll._id}
-                    className="w-full flex items-center gap-3 px-4 py-3 text-left text-gray-700 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {cloning === ellipsesMenu.poll._id ? (
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-600"></div>
-                    ) : (
-                      <DocumentDuplicateIcon className="w-5 h-5" />
-                    )}
-                    <span className="font-medium">
-                      {cloning === ellipsesMenu.poll._id ? 'Cloning...' : 'Clone Poll'}
-                    </span>
-                  </button>
-                  
-                  <button
-                    onClick={() => {
-                      handleToggleViewMode(ellipsesMenu.poll!);
-                      closeEllipsesMenu();
-                    }}
-                    disabled={togglingViewMode === ellipsesMenu.poll._id}
-                    className="w-full flex items-center gap-3 px-4 py-3 text-left text-gray-700 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {togglingViewMode === ellipsesMenu.poll._id ? (
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-600"></div>
-                    ) : ellipsesMenu.poll.viewMode === 'single' ? (
-                      <ListBulletIcon className="w-5 h-5" />
-                    ) : (
-                      <ViewColumnsIcon className="w-5 h-5" />
-                    )}
-                    <span className="font-medium">
-                      {togglingViewMode === ellipsesMenu.poll._id 
-                        ? 'Updating...' 
-                        : ellipsesMenu.poll.viewMode === 'single'
-                        ? 'Switch to Step by Step'
-                        : 'Switch to All Questions'
-                      }
-                    </span>
-                  </button>
-                  
-                  <button
-                    onClick={() => {
-                      openShareModal(ellipsesMenu.poll!);
-                      closeEllipsesMenu();
-                    }}
-                    disabled={!ellipsesMenu.poll?.isActive && ellipsesMenu.poll?.settings?.endDate && new Date(ellipsesMenu.poll.settings.endDate) < new Date()}
-                    className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors ${
-                      !ellipsesMenu.poll?.isActive && ellipsesMenu.poll?.settings?.endDate && new Date(ellipsesMenu.poll.settings.endDate) < new Date()
-                        ? 'text-gray-400 bg-gray-100 cursor-not-allowed'
-                        : 'text-gray-700 bg-gray-50 hover:bg-gray-100'
-                    }`}
-                  >
-                    <ShareIcon className="w-5 h-5" />
-                    <span className="font-medium">
-                      {!ellipsesMenu.poll?.isActive && ellipsesMenu.poll?.settings?.endDate && new Date(ellipsesMenu.poll.settings.endDate) < new Date()
-                        ? 'Share Poll (Expired)'
-                        : 'Share Poll'
-                      }
-                    </span>
-                  </button>
-                  
-                  <button
-                    onClick={() => {
-                      handleDeletePoll(ellipsesMenu.poll!);
-                      closeEllipsesMenu();
-                    }}
-                    className="w-full flex items-center gap-3 px-4 py-3 text-left text-red-700 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
-                  >
-                    <TrashIcon className="w-5 h-5" />
-                    <span className="font-medium">Delete Poll</span>
-                  </button>
-                </div>
-              </div>
-            </div>
+      {/* Ellipses Menu Dropdown */}
+      {ellipsesMenu.show && ellipsesMenu.poll && ellipsesMenu.position && (
+        <div 
+          className="ellipses-menu fixed z-50 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2"
+          style={{
+            left: `${ellipsesMenu.position.x}px`,
+            top: `${ellipsesMenu.position.y}px`,
+          }}
+        >
+          <div className="px-4 py-2 border-b border-gray-100">
+            <p className="text-sm font-medium text-gray-900 truncate">{ellipsesMenu.poll.title}</p>
+          </div>
+          
+          <div className="py-1">
+            <button
+              onClick={() => handleClonePoll(ellipsesMenu.poll!)}
+              disabled={cloning === ellipsesMenu.poll._id}
+              className="w-full flex items-center gap-3 px-4 py-2 text-left text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {cloning === ellipsesMenu.poll._id ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600"></div>
+              ) : (
+                <DocumentDuplicateIcon className="w-4 h-4" />
+              )}
+              <span className="text-sm font-medium">
+                {cloning === ellipsesMenu.poll._id ? 'Cloning...' : 'Clone Poll'}
+              </span>
+            </button>
+            
+            <button
+              onClick={() => {
+                handleToggleViewMode(ellipsesMenu.poll!);
+                closeEllipsesMenu();
+              }}
+              disabled={togglingViewMode === ellipsesMenu.poll._id}
+              className="w-full flex items-center gap-3 px-4 py-2 text-left text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {togglingViewMode === ellipsesMenu.poll._id ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600"></div>
+              ) : ellipsesMenu.poll.viewMode === 'single' ? (
+                <ListBulletIcon className="w-4 h-4" />
+              ) : (
+                <ViewColumnsIcon className="w-4 h-4" />
+              )}
+              <span className="text-sm font-medium">
+                {togglingViewMode === ellipsesMenu.poll._id 
+                  ? 'Updating...' 
+                  : ellipsesMenu.poll.viewMode === 'single'
+                  ? 'Switch to Step by Step'
+                  : 'Switch to All Questions'
+                }
+              </span>
+            </button>
+            
+            <button
+              onClick={() => {
+                openShareModal(ellipsesMenu.poll!);
+                closeEllipsesMenu();
+              }}
+              disabled={!ellipsesMenu.poll?.isActive && ellipsesMenu.poll?.settings?.endDate && new Date(ellipsesMenu.poll.settings.endDate) < new Date()}
+              className={`w-full flex items-center gap-3 px-4 py-2 text-left transition-colors ${
+                !ellipsesMenu.poll?.isActive && ellipsesMenu.poll?.settings?.endDate && new Date(ellipsesMenu.poll.settings.endDate) < new Date()
+                  ? 'text-gray-400 cursor-not-allowed'
+                  : 'text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              <ShareIcon className="w-4 h-4" />
+              <span className="text-sm font-medium">
+                {!ellipsesMenu.poll?.isActive && ellipsesMenu.poll?.settings?.endDate && new Date(ellipsesMenu.poll.settings.endDate) < new Date()
+                  ? 'Share Poll (Expired)'
+                  : 'Share Poll'
+                }
+              </span>
+            </button>
+            
+            <button
+              onClick={() => {
+                handleDeletePoll(ellipsesMenu.poll!);
+                closeEllipsesMenu();
+              }}
+              className="w-full flex items-center gap-3 px-4 py-2 text-left text-red-700 hover:bg-red-50 transition-colors"
+            >
+              <TrashIcon className="w-4 h-4" />
+              <span className="text-sm font-medium">Delete Poll</span>
+            </button>
           </div>
         </div>
       )}

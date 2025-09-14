@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -28,10 +28,26 @@ import {
   ListBulletIcon
 } from '@heroicons/react/24/outline';
 
+// Component that handles search params logic
+function SearchParamsHandler({ onUpdated }: { onUpdated: () => void }) {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (searchParams.get('updated') === 'true') {
+      // Remove the query parameter from URL
+      router.replace('/dashboard');
+      // Trigger refresh
+      onUpdated();
+    }
+  }, [searchParams, router, onUpdated]);
+
+  return null;
+}
+
 export default function DashboardPage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [polls, setPolls] = useState<Poll[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteConfirm, setDeleteConfirm] = useState<{ poll: Poll | null; show: boolean }>({
@@ -67,14 +83,11 @@ export default function DashboardPage() {
   }, [user, authLoading, router]);
 
   // Handle query parameters (e.g., when redirected from edit page)
-  useEffect(() => {
-    if (searchParams.get('updated') === 'true' && user && !authLoading) {
-      // Remove the query parameter from URL
-      router.replace('/dashboard');
-      // Refresh polls data
+  const handleUpdated = () => {
+    if (user && !authLoading) {
       fetchPolls();
     }
-  }, [searchParams, user, authLoading, router]);
+  };
 
   // Refresh polls when page becomes visible (e.g., when navigating back from edit page)
   useEffect(() => {
@@ -276,7 +289,7 @@ export default function DashboardPage() {
       const response = await pollApi.clone(poll.code);
       // Add the new poll to the beginning of the list
       setPolls([response.data.poll, ...polls]);
-      setEllipsesMenu({ poll: null, show: false });
+      setEllipsesMenu({ poll: null, show: false, position: null });
       alert('Poll cloned successfully!');
     } catch (error: any) {
       console.error('Failed to clone poll:', error);
@@ -315,6 +328,11 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Search params handler wrapped in Suspense */}
+      <Suspense fallback={null}>
+        <SearchParamsHandler onUpdated={handleUpdated} />
+      </Suspense>
+      
       {/* Navigation */}
       <nav className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -734,7 +752,7 @@ export default function DashboardPage() {
                 openShareModal(ellipsesMenu.poll!);
                 closeEllipsesMenu();
               }}
-              disabled={!ellipsesMenu.poll?.isActive && ellipsesMenu.poll?.settings?.endDate && new Date(ellipsesMenu.poll.settings.endDate) < new Date()}
+              disabled={Boolean(!ellipsesMenu.poll?.isActive && ellipsesMenu.poll?.settings?.endDate && new Date(ellipsesMenu.poll.settings.endDate) < new Date())}
               className={`w-full flex items-center gap-3 px-4 py-2 text-left transition-colors ${
                 !ellipsesMenu.poll?.isActive && ellipsesMenu.poll?.settings?.endDate && new Date(ellipsesMenu.poll.settings.endDate) < new Date()
                   ? 'text-gray-400 cursor-not-allowed'
